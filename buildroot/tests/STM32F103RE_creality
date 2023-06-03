@@ -34,6 +34,9 @@ opt_enable DWIN_LCD_PROUI PID_AUTOTUNE_MENU PID_EDIT_MENU STATUS_MESSAGE_SCROLLI
 opt_set BOOTSCREEN_TIMEOUT 1100 CASE_LIGHT_PIN 4 SDSORT_GCODE true
 exec_test $1 $2 "Ender-3 S1 - ProUI (UBL, PIDTEMP)" "$3"
 
+use_example_configs "Creality/CR-6 SE"
+exec_test $1 $2 "Creality CR-6 SE"
+
 restore_configs
 opt_set MOTHERBOARD BOARD_CREALITY_V452 SERIAL_PORT 1
 opt_disable NOZZLE_TO_PROBE_OFFSET
