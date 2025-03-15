@@ -383,21 +383,26 @@
 
 #ifdef __cplusplus
 
-  extern "C++" {
+  #ifndef _MINMAX_H_
+  #define _MINMAX_H_
 
-    // C++11 solution that is standards compliant. Return type is deduced automatically
-    template <class N> static constexpr N _MIN(const N val) { return val; }
-    template <class N> static constexpr N _MAX(const N val) { return val; }
-    template <class L, class R> static constexpr auto _MIN(const L lhs, const R rhs) -> decltype(lhs + rhs) {
-      return lhs < rhs ? lhs : rhs;
-    }
-    template <class L, class R> static constexpr auto _MAX(const L lhs, const R rhs) -> decltype(lhs + rhs) {
-      return lhs > rhs ? lhs : rhs;
-    }
-    template<class T, class ... Ts> static constexpr const T _MIN(T V, Ts... Vs) { return _MIN(V, _MIN(Vs...)); }
-    template<class T, class ... Ts> static constexpr const T _MAX(T V, Ts... Vs) { return _MAX(V, _MAX(Vs...)); }
+    extern "C++" {
 
-  }
+      // C++11 solution that is standards compliant. Return type is deduced automatically
+      template <class N> static constexpr N _MIN(const N val) { return val; }
+      template <class N> static constexpr N _MAX(const N val) { return val; }
+      template <class L, class R> static constexpr auto _MIN(const L lhs, const R rhs) -> decltype(lhs + rhs) {
+        return lhs < rhs ? lhs : rhs;
+      }
+      template <class L, class R> static constexpr auto _MAX(const L lhs, const R rhs) -> decltype(lhs + rhs) {
+        return lhs > rhs ? lhs : rhs;
+      }
+      template<class T, class ... Ts> static constexpr const T _MIN(T V, Ts... Vs) { return _MIN(V, _MIN(Vs...)); }
+      template<class T, class ... Ts> static constexpr const T _MAX(T V, Ts... Vs) { return _MAX(V, _MAX(Vs...)); }
+
+    }
+
+  #endif
 
   // Allow manipulating enumeration value like flags without ugly cast everywhere
   #define ENUM_FLAGS(T) \
