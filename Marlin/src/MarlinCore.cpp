@@ -733,12 +733,11 @@ void Marlin::manage_inactivity(const bool no_stepper_sleep/*=false*/) {
   #endif // EXTRUDER_RUNOUT_PREVENT
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    // handle delayed move timeout
-    if (delayed_move_time && ELAPSED(ms, delayed_move_time) && isRunning()) {
-      // travel moves have been received so enact them
-      delayed_move_time = UINT32_MAX; // force moves to be done
+    // Add a delayed move when the proper time arrives, or always add it
+    if (delayed_move_interval > 1 && ELAPSED(ms, delayed_move_start_ms, delayed_move_interval) && IsRunning()) {
+      delayed_move_interval = 1;      // Force moves to be done in dual_x_carriage_unpark
       motion.destination = motion.position;
-      motion.prepare_line_to_destination();
+      motion.prepare_line_to_destination();  // Also calls dual_x_carriage_unpark
       planner.synchronize();
     }
   #endif
