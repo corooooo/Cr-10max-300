@@ -29,7 +29,7 @@
 #include "../../module/probe.h"
 #include "../../module/planner.h"
 
-#if ENABLED(GLOBAL_MESH_Z_OFFSET)
+#if ANY(MESH_BED_LEVELING, GLOBAL_MESH_Z_OFFSET)
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
 
