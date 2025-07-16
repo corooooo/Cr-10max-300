@@ -246,8 +246,11 @@ namespace LanguageNarrow_en {
   LSTR MSG_IDEX_MODE_MIRRORED_COPY        = _UxGT("Mirrored Copy");
   LSTR MSG_IDEX_MODE_FULL_CTRL            = _UxGT("Full Control");
   LSTR MSG_IDEX_DUPE_GAP                  = _UxGT("Duplicate X-Gap");
-  LSTR MSG_HOTEND_OFFSET_Z                = _UxGT("2nd Nozzle Z");
-  LSTR MSG_HOTEND_OFFSET_N                = _UxGT("2nd Nozzle @");
+  LSTR MSG_TOOL_OFFSET_Z                  = _UxGT("2nd Nozzle Z");
+  LSTR MSG_TOOL_OFFSET_N                  = _UxGT("2nd Nozzle @");
+  LSTR MSG_TOOL_N_OFFSET_X                = _UxGT("Tool = X");
+  LSTR MSG_TOOL_N_OFFSET_Y                = _UxGT("Tool = Y");
+  LSTR MSG_TOOL_N_OFFSET_Z                = _UxGT("Tool = Z");
   LSTR MSG_UBL_DOING_G29                  = _UxGT("Doing G29");
   LSTR MSG_UBL_TOOLS                      = _UxGT("UBL Tools");
   LSTR MSG_LCD_TILTING_MESH               = _UxGT("Tilting Point");
@@ -367,6 +370,9 @@ namespace LanguageNarrow_en {
   LSTR MSG_LIVE_MOVE                      = _UxGT("Live Movement");
   LSTR MSG_SPEED                          = _UxGT("Speed");
   LSTR MSG_MESH_Z_OFFSET                  = _UxGT("Bed Z");
+  LSTR MSG_TOOL_N                         = _UxGT("Tool ~");
+  LSTR MSG_HOTEND                         = _UxGT("Hotend");
+  LSTR MSG_HOTEND_N                       = _UxGT("Hotend ~");
   LSTR MSG_NOZZLE                         = _UxGT("Nozzle");
   LSTR MSG_NOZZLE_N                       = _UxGT("Nozzle ~");
   LSTR MSG_NOZZLE_PARKED                  = _UxGT("Nozzle Parked");
@@ -378,6 +384,7 @@ namespace LanguageNarrow_en {
   LSTR MSG_FLOWMETER_SAFETY               = _UxGT("Flow Safety");
   LSTR MSG_CUTTER                         = _UxGT("Cutter");
   LSTR MSG_LASER                          = _UxGT("Laser");
+  LSTR MSG_LASER_SPINDLE                  = _UxGT("Laser/Spindle");
   LSTR MSG_FAN_SPEED                      = _UxGT("Fan Speed");
   LSTR MSG_FAN_SPEED_N                    = _UxGT("Fan Speed ~");
   LSTR MSG_STORED_FAN_N                   = _UxGT("Stored Fan ~");
@@ -768,6 +775,7 @@ namespace LanguageNarrow_en {
   LSTR MSG_DAC_EEPROM_WRITE               = _UxGT("DAC EEPROM Write");
   LSTR MSG_FILAMENT_CHANGE_HEADER         = _UxGT("FILAMENT CHANGE");
   LSTR MSG_FILAMENT_CHANGE_HEADER_PAUSE   = _UxGT("PRINT PAUSED");
+  LSTR MSG_TOOL_CHANGE_HEADER             = _UxGT("TOOL CHANGE");
   LSTR MSG_FILAMENT_CHANGE_HEADER_LOAD    = _UxGT("LOAD FILAMENT");
   LSTR MSG_FILAMENT_CHANGE_HEADER_UNLOAD  = _UxGT("UNLOAD FILAMENT");
   LSTR MSG_FILAMENT_CHANGE_OPTION_HEADER  = _UxGT("RESUME OPTIONS:");
@@ -904,6 +912,17 @@ namespace LanguageNarrow_en {
   LSTR MSG_FILAMENT_CHANGE_PURGE          = _UxGT(MSG_1_LINE("Purging..."));
   LSTR MSG_FILAMENT_CHANGE_CONT_PURGE     = _UxGT(MSG_1_LINE("Click to finish"));
   LSTR MSG_FILAMENT_CHANGE_RESUME         = _UxGT(MSG_1_LINE("Resuming..."));
+
+  // MANUAL_SWITCHING_TOOLHEAD
+  LSTR MSG_PAUSE_TOOL_CHANGE              = _UxGT(MSG_1_LINE("Change Tool"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_0            = _UxGT(MSG_1_LINE("Install Tool 0"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_1            = _UxGT(MSG_1_LINE("Install Tool 1"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_2            = _UxGT(MSG_1_LINE("Install Tool 2"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_3            = _UxGT(MSG_1_LINE("Install Tool 3"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_4            = _UxGT(MSG_1_LINE("Install Tool 4"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_5            = _UxGT(MSG_1_LINE("Install Tool 5"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_6            = _UxGT(MSG_1_LINE("Install Tool 6"));
+  LSTR MSG_PAUSE_TOOL_CHANGE_7            = _UxGT(MSG_1_LINE("Install Tool 7"));
 
   LSTR MSG_TMC_DRIVERS                    = _UxGT("TMC Drivers");
   LSTR MSG_TMC_CURRENT                    = _UxGT("Driver Current");
@@ -1168,6 +1187,16 @@ namespace LanguageTall_en {
     LSTR MSG_FILAMENT_CHANGE_PURGE        = _UxGT(MSG_2_LINE("Wait for", "filament purge"));
     LSTR MSG_FILAMENT_CHANGE_CONT_PURGE   = _UxGT(MSG_2_LINE("Click to finish", "filament purge"));
     LSTR MSG_FILAMENT_CHANGE_RESUME       = _UxGT(MSG_2_LINE("Wait for print", "to resume..."));
+
+    LSTR MSG_PAUSE_TOOL_CHANGE            = _UxGT(MSG_2_LINE("Change tool and", "click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_0          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_0, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_1          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_1, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_2          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_2, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_3          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_3, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_4          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_4, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_5          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_5, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_6          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_6, "Click to resume..."));
+    LSTR MSG_PAUSE_TOOL_CHANGE_7          = _UxGT(MSG_3_LINE("Install Tool", TOOL_NAME_7, "Click to resume..."));
   #endif
 }
 
