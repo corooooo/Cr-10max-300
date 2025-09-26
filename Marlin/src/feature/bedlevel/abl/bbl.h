@@ -45,7 +45,7 @@ private:
 
     static float virt_coord(const uint8_t x, const uint8_t y);
     static float virt_cmr(const float p[4], const uint8_t i, const float t);
-    static float virt_2cmr(const uint8_t x, const uint8_t y, const_float_t tx, const_float_t ty);
+    static float virt_2cmr(const uint8_t x, const uint8_t y, const float tx, const float ty);
     static void subdivide_mesh();
   #endif
 
@@ -65,7 +65,7 @@ public:
   #endif
 
   #if IS_CARTESIAN && DISABLED(SEGMENT_LEVELED_MOVES)
-    static void line_to_destination(const_feedRate_t scaled_fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+    static void line_to_destination(const feedRate_t scaled_fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
   #endif
 };
 
