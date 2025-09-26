@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2025 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -21,18 +21,17 @@
  */
 #pragma once
 
-/**
- * planner_bezier.h
- *
- * Compute and buffer movement commands for Bézier curves
- */
+#if HOTENDS > 2 || E_STEPPERS > 1
+  #error "Creality V252 supports up to 2 hotends and 1 E stepper."
+#endif
 
-#include "../core/types.h"
+#define BOARD_INFO_NAME "Creality3D V252"
 
-void cubic_b_spline(
-  const xyze_pos_t &position,       // current position
-  const xyze_pos_t &target,         // target position
-  const xy_pos_t (&offsets)[2],     // a pair of offsets
-  const feedRate_t scaled_fr_mm_s,  // mm/s scaled by feedrate %
-  const uint8_t extruder
-);
+#if !AXIS_DRIVER_TYPE_X(TMC2208_STANDALONE) || !AXIS_DRIVER_TYPE_Y(TMC2208_STANDALONE) || !AXIS_DRIVER_TYPE_Z(TMC2208_STANDALONE) || !AXIS_DRIVER_TYPE_E0(TMC2208_STANDALONE)
+  #error "Creality V252 requires TMC2208_STANDALONE for X,Y,Z and E."
+#endif
+
+//
+// Based on RAMPS CREALITY
+//
+#include "pins_RAMPS_CREALITY.h"
