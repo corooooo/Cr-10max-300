@@ -752,7 +752,7 @@ void unified_bed_leveling::adjust_mesh_to_mean(const bool cflag, const float off
 /**
  * G29 P6 C<offset> : Shift Mesh Height by a uniform constant.
  */
-void unified_bed_leveling::shift_mesh_height(const_float_t zoffs) {
+void unified_bed_leveling::shift_mesh_height(const float zoffs) {
   GRID_LOOP(x, y)
     if (!isnan(z_values[x][y])) {
       z_values[x][y] += zoffs;
