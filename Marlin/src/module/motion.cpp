@@ -154,6 +154,7 @@ xyze_pos_t destination; // {0}
   #define DEFAULT_FEEDRATE_MM_M 4000
 #endif
 feedRate_t feedrate_mm_s = MMM_TO_MMS(DEFAULT_FEEDRATE_MM_M);
+
 int16_t feedrate_percentage = 100;
 #if ENABLED(EDITABLE_HOMING_FEEDRATE)
   xyz_feedrate_t homing_feedrate_mm_m = HOMING_FEEDRATE_MM_M;
@@ -1592,13 +1593,23 @@ float get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXES, bool 
     if (UNEAR_ZERO(cartesian_mm)) return true;
 
     // Minimum number of seconds to move the given distance
-    const float seconds = cartesian_mm / (
-      #if ALL(HAS_ROTATIONAL_AXES, INCH_MODE_SUPPORT)
-        cartes_move ? scaled_fr_mm_s : LINEAR_UNIT(scaled_fr_mm_s)
-      #else
-        scaled_fr_mm_s
-      #endif
-    );
+    #if ENABLED(FEEDRATE_MODE_SUPPORT)
+      const float seconds = (parser.print_move && parser.inverse_time_enabled) ? RECIPROCAL(scaled_fr_mm_s) : cartesian_mm / (
+        #if ALL(HAS_ROTATIONAL_AXES, INCH_MODE_SUPPORT)
+          cartes_move ? scaled_fr_mm_s : LINEAR_UNIT(scaled_fr_mm_s)
+        #else
+          scaled_fr_mm_s
+        #endif
+      );
+    #else
+      const float seconds = cartesian_mm / (
+        #if ALL(HAS_ROTATIONAL_AXES, INCH_MODE_SUPPORT)
+          cartes_move ? scaled_fr_mm_s : LINEAR_UNIT(scaled_fr_mm_s)
+        #else
+          scaled_fr_mm_s
+        #endif
+      );
+    #endif
 
     // The number of segments-per-second times the duration
     // gives the number of segments
@@ -1621,8 +1632,11 @@ float get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXES, bool 
     // Add hints to help optimize the move
     PlannerHints hints(cartesian_mm * inv_segments);
     TERN_(HAS_ROTATIONAL_AXES, hints.cartesian_move = cartes_move);
-    TERN_(FEEDRATE_SCALING, hints.inv_duration = scaled_fr_mm_s / hints.millimeters);
-
+    #if ENABLED(FEEDRATE_MODE_SUPPORT)
+      hints.inv_duration = (parser.inverse_time_enabled && parser.print_move) ? (scaled_fr_mm_s * segments) : (scaled_fr_mm_s / hints.millimeters);
+    #elif ENABLED(FEEDRATE_SCALING)
+        hints.inv_duration = scaled_fr_mm_s / hints.millimeters;
+    #endif
     /*
     SERIAL_ECHOPGM("mm=", cartesian_mm);
     SERIAL_ECHOPGM(" seconds=", seconds);
@@ -1694,7 +1708,7 @@ float get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXES, bool 
       // Add hints to help optimize the move
       PlannerHints hints(cartesian_mm * inv_segments);
       TERN_(HAS_ROTATIONAL_AXES, hints.cartesian_move = cartes_move);
-      TERN_(FEEDRATE_SCALING, hints.inv_duration = scaled_fr_mm_s / hints.millimeters);
+      TERN_(FEEDRATE_SCALING, hints.inv_duration = scaled_fr_mm_s / hints.millimeters);  // TODO (DerAndere): Fix inverse time mode for FEEDRATE_MODE_SUPPORT
 
       //SERIAL_ECHOPGM("mm=", cartesian_mm);
       //SERIAL_ECHOLNPGM(" segments=", segments);

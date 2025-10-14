@@ -64,15 +64,16 @@
     void mesh_bed_leveling::line_to_destination(const feedRate_t scaled_fr_mm_s, uint8_t x_splits, uint8_t y_splits) {
       // Get current and destination cells for this line
       xy_uint8_t scel = cell_indexes(current_position), ecel = cell_indexes(destination);
-      NOMORE(scel.x, GRID_MAX_CELLS_X - 1);
-      NOMORE(scel.y, GRID_MAX_CELLS_Y - 1);
-      NOMORE(ecel.x, GRID_MAX_CELLS_X - 1);
-      NOMORE(ecel.y, GRID_MAX_CELLS_Y - 1);
+      
+      segments = ecel - scel;
+      NOLESS(segments, 1);
+      
+      segment_fr = (parser.inverse_time_enabled && parser.print_move) ? scaled_fr_mm_s * segments : scaled_fr_mm_s;
 
       // Start and end in the same cell? No split needed.
       if (scel == ecel) {
         current_position = destination;
-        line_to_current_position(scaled_fr_mm_s);
+        line_to_current_position(segment_fr);
         return;
       }
 
@@ -105,7 +106,7 @@
         // Must already have been split on these border(s)
         // This should be a rare case.
         current_position = destination;
-        line_to_current_position(scaled_fr_mm_s);
+        line_to_current_position(segment_fr);
         return;
       }
 
@@ -113,11 +114,11 @@
       destination.e = MBL_SEGMENT_END(e);
 
       // Do the split and look for more borders
-      line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
+      line_to_destination(segment_fr, x_splits, y_splits);
 
       // Restore destination from stack
       destination = dest;
-      line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
+      line_to_destination(segment_fr, x_splits, y_splits);
     }
 
   #endif // IS_CARTESIAN && !SEGMENT_LEVELED_MOVES
