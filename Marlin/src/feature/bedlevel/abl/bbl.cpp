@@ -385,7 +385,6 @@ float LevelingBilinear::get_z_correction(const xy_pos_t &raw) {
       return;
     }
 
-
     const xyze_pos_t total = destination - current_position;
 
     #if ENABLED(FEEDRATE_MODE_SUPPORT)
