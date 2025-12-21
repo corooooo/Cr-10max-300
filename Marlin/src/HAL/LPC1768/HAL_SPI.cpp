@@ -26,10 +26,6 @@
  */
 
 /**
- * For TARGET_LPC1768
- */
-
-/**
  * Hardware SPI and Software SPI implementations are included in this file.
  * The hardware SPI runs faster and has higher throughput but is not compatible
  * with some LCD interfaces/adapters.
@@ -41,9 +37,8 @@
  * WRITE nor digitalWrite when the hardware SPI module within the LPC17xx is
  * active. If any of these pins are shared then the software SPI must be used.
  *
- * A more sophisticated hardware SPI can be found at the following link.
- * This implementation has not been fully debugged.
- * https://github.com/MarlinFirmware/Marlin/tree/071c7a78f27078fd4aee9a3ef365fcf5e143531e
+ * A more sophisticated hardware SPI is included for future reference.
+ * See: spi_impl-071c7a78f2.cpp and spi_pins-071c7a78f2.h
  */
 
 #ifdef TARGET_LPC1768
@@ -100,7 +95,11 @@
       (void)spiTransfer(buf[i]);
   }
 
-#else
+#else // !SOFTWARE_SPI
+
+  /**
+   * Hardware SPI
+   */
 
   #ifdef SD_SPI_SPEED
     #define INIT_SPI_SPEED SD_SPI_SPEED
@@ -161,7 +160,7 @@
     // TODO: Implement this method
   }
 
-#endif // SOFTWARE_SPI
+#endif // !SOFTWARE_SPI
 
 /**
  * @brief Wait until TXE (tx empty) flag is set and BSY (busy) flag unset.
