@@ -292,6 +292,10 @@ G29_TYPE GcodeSuite::G29() {
       gcode.process_subcommands_now(F(EVENT_GCODE_BEFORE_G29));
     #endif
 
+    #if ENABLED(AUTO_Z_PROBE_OFFSET)
+      (void)probe.probe_to_obtain_z_offset();
+    #endif
+
     #if ANY(PROBE_MANUALLY, AUTO_BED_LEVELING_LINEAR)
       abl.abl_probe_index = -1;
     #endif
@@ -588,7 +592,7 @@ G29_TYPE GcodeSuite::G29() {
         abl.z_values[abl.meshCount.x][abl.meshCount.y] = newz;
         TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(abl.meshCount, newz));
 
-        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM_P(PSTR("Save X"), abl.meshCount.x, SP_Y_STR, abl.meshCount.y, SP_Z_STR, abl.measured_z + abl.Z_offset);
+        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM_P(PSTR("Save X"), abl.meshCount.x, SP_Y_STR, abl.meshCount.y, SP_Z_STR, newz);
 
       #endif
     }

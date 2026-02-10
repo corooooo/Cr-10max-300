@@ -2170,6 +2170,13 @@
 //#define MESH_BED_LEVELING
 
 /**
+ * Base the Probe Z Offset on a trustworthy Z endstop
+ * Requires the Z axis to be homed with an endstop.
+ * Use 'M206 Z' to adjust the Z endstop to match the height at bed center.
+ */
+//#define AUTO_Z_PROBE_OFFSET
+
+/**
  * Commands to execute at the start of G29 probing,
  * after switching to the PROBING_TOOL.
  */

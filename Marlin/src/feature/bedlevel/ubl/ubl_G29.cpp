@@ -318,15 +318,27 @@ void unified_bed_leveling::G29() {
   // Check for commands that require the printer to be homed
   if (may_move) {
     planner.synchronize();
-    #if ALL(DWIN_LCD_PROUI, ZHOME_BEFORE_LEVELING)
-      save_ubl_active_state_and_disable();
-      gcode.process_subcommands_now(F("G28Z"));
-      restore_ubl_active_state(false); // ...without telling ExtUI "done"
-    #else
-      // Send 'N' to force homing before G29 (internal only)
-      if (axes_should_home() || parser.seen_test('N')) gcode.home_all_axes();
-    #endif
+
+    // Send 'N' to force homing before G29 (internal only)
+    const bool force_home = axes_should_home() || parser.seen_test('N');
+    if (force_home) {
+      gcode.home_all_axes();
+    }
+    else {
+      #if ALL(DWIN_LCD_PROUI, ZHOME_BEFORE_LEVELING)
+        save_ubl_active_state_and_disable();
+        gcode.process_subcommands_now(F("G28Z"));
+        restore_ubl_active_state(false);              // ...without telling ExtUI "done"
+      #elif ENABLED(AUTO_Z_PROBE_OFFSET)
+        gcode.process_subcommands_now(F("G28XYL0"));  // Home X and Y only
+      #endif
+    }
+
     probe.use_probing_tool();
+
+    #if ENABLED(AUTO_Z_PROBE_OFFSET)
+      (void)probe.probe_to_obtain_z_offset();
+    #endif
 
     #ifdef EVENT_GCODE_BEFORE_G29
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Before G29 G-code: ", EVENT_GCODE_BEFORE_G29);
