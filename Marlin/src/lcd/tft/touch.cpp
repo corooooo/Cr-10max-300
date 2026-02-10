@@ -38,12 +38,16 @@
 
 #include "tft.h"
 
+#define DEBUG_OUT 1
+#include "../../core/debug_out.h"
+
 Touch touch;
 
 bool Touch::enabled = true;
 int16_t Touch::x, Touch::y;
 touch_control_t Touch::controls[];
 touch_control_t *Touch::current_control;
+touch_event_t Touch::touch_event;
 uint16_t Touch::controls_count;
 millis_t Touch::next_touch_ms = 0,
          Touch::time_to_hold,
@@ -62,7 +66,7 @@ void Touch::init() {
   enable();
 }
 
-void Touch::add_control(TouchControlType type, uint16_t x, uint16_t y, uint16_t width, uint16_t height, intptr_t data) {
+void Touch::add_control(TouchControlType type, uint16_t x, uint16_t y, uint16_t width, uint16_t height, intptr_t data, int32_t index) {
   if (controls_count == MAX_CONTROLS) return;
 
   controls[controls_count].type = type;
@@ -71,6 +75,7 @@ void Touch::add_control(TouchControlType type, uint16_t x, uint16_t y, uint16_t 
   controls[controls_count].width = width;
   controls[controls_count].height = height;
   controls[controls_count].data = data;
+  controls[controls_count].index = index;
   controls_count++;
 }
 
@@ -174,7 +179,7 @@ void Touch::touch(touch_control_t * const control) {
     #endif
 
     // A control that activates a menu item screen
-    case MENU_SCREEN: ui.goto_screen((screenFunc_t)control->data); break;
+    case MENU_SCREEN: ui.goto_screen(screenFunc_t(control->data)); break;
 
     // Back Control
     case BACK: ui.goto_previous_screen(); break;
@@ -212,7 +217,7 @@ void Touch::touch(touch_control_t * const control) {
     // Page Down button
     case PAGE_DOWN:
       encoderTopLine = (encoderTopLine + 2 * LCD_HEIGHT < screen_items) ? encoderTopLine + LCD_HEIGHT : screen_items - LCD_HEIGHT;
-      ui.encoderPosition = ui.encoderPosition + LCD_HEIGHT < (uint32_t)screen_items ? ui.encoderPosition + LCD_HEIGHT : screen_items;
+      ui.encoderPosition = ui.encoderPosition + LCD_HEIGHT < uint32_t(screen_items) ? ui.encoderPosition + LCD_HEIGHT : screen_items;
       ui.refresh();
       break;
 
@@ -226,8 +231,8 @@ void Touch::touch(touch_control_t * const control) {
     // Other controls behave like menu items
 
     case HEATER: {
-      ui.clear_for_drawing();
       const int8_t heater = control->data;
+      ui.clear_for_drawing();
       switch (heater) {
         default: // Hotend
           #if HAS_HOTEND
@@ -299,8 +304,18 @@ void Touch::touch(touch_control_t * const control) {
       case UBL: hold(control, UBL_REPEAT_DELAY); ui.encoderPosition += control->data; break;
     #endif
 
+    case MOVE_AXIS:
+      ui.goto_screen(screenFunc_t(ui.move_axis_screen));
+      break;
+
     // TODO: TOUCH could receive data to pass to the callback
-    case BUTTON: ((screenFunc_t)control->data)(); break;
+    case BUTTON: (screenFunc_t(control->data))(); break;
+    case CALLBACK:
+      DEBUG_ECHOLNPGM("Previous event value: ", touch_event.index);
+      touch_event.index = control->index;
+      DEBUG_ECHOLNPGM("Create touch event: ", touch_event.index);
+      (touch_handler_t(control->data))(&touch_event);
+      break;
 
     default: break;
   }
