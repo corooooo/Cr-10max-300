@@ -168,6 +168,9 @@ public:
     return MMM_TO_MMS(v);
   }
 
+  /**
+   * Homing bump feedrate (mm/s)
+   */
   static feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
   #if HAS_HOME_OFFSET
@@ -359,6 +362,7 @@ public:
   //
   // Reachability Tests
   //
+
   #if IS_KINEMATIC
 
     // Return true if the given point is within the printable area
@@ -527,7 +531,13 @@ private:
 #elif defined(XY_PROBE_FEEDRATE)
   #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_FEEDRATE)
 #else
-  #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE_MM_S
+  #if HAS_Y_AXIS
+    #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS((motion.homing_feedrate_mm_m.x + motion.homing_feedrate_mm_m.y) / 2)
+  #elif HAS_X_AXIS
+    #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(motion.homing_feedrate_mm_m.x)
+  #else
+    #define XY_PROBE_FEEDRATE_MM_S XY_PROBE_FEEDRATE_MIN
+  #endif
 #endif
 
 #ifdef Z_PROBE_FEEDRATE_SLOW
