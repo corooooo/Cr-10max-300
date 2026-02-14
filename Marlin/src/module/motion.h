@@ -560,8 +560,13 @@ XYZ_DEFS(int8_t, home_dir,      HOME_DIR);    // home_dir(axis)
 // Flags for rotational axes
 constexpr AxisFlags rotational{0 LOGICAL_AXIS_GANG(
     | 0, | 0, | 0, | 0,
-    | (ENABLED(AXIS4_ROTATES)<<I_AXIS), | (ENABLED(AXIS5_ROTATES)<<J_AXIS), | (ENABLED(AXIS6_ROTATES)<<K_AXIS),
-    | (ENABLED(AXIS7_ROTATES)<<U_AXIS), | (ENABLED(AXIS8_ROTATES)<<V_AXIS), | (ENABLED(AXIS9_ROTATES)<<W_AXIS))
+    | (ENABLED(AXIS4_ROTATES)<<I_AXIS),
+    | (ENABLED(AXIS5_ROTATES)<<J_AXIS),
+    | (ENABLED(AXIS6_ROTATES)<<K_AXIS),
+    | (ENABLED(AXIS7_ROTATES)<<U_AXIS),
+    | (ENABLED(AXIS8_ROTATES)<<V_AXIS),
+    | (ENABLED(AXIS9_ROTATES)<<W_AXIS)
+  )
 };
 
 inline float home_bump_mm(const AxisEnum axis) {
@@ -590,7 +595,7 @@ inline float home_bump_mm(const AxisEnum axis) {
  * Duplication mode
  */
 #if HAS_DUPLICATION_MODE
-  extern bool extruder_duplication_enabled;       // Used in Dual X mode 2
+  extern bool extruder_duplication_enabled; // Used in Dual X mode 2
 #endif
 
 /**
@@ -606,13 +611,13 @@ inline float home_bump_mm(const AxisEnum axis) {
   };
 
   extern DualXMode dual_x_carriage_mode;
-  extern float inactive_extruder_x,                 // Used in mode 0 & 1
-               duplicate_extruder_x_offset;         // Used in mode 2 & 3
-  extern xyz_pos_t raised_parked_position;          // Used in mode 1
-  extern bool active_extruder_parked;               // Used in mode 1, 2 & 3
-  extern millis_t delayed_move_time;                // Used in mode 1
-  extern celsius_t duplicate_extruder_temp_offset;  // Used in mode 2 & 3
-  extern bool idex_mirrored_mode;                   // Used in mode 3
+  extern float inactive_extruder_x,                // Used in mode 0 & 1
+               duplicate_extruder_x_offset;        // Used in mode 2 & 3
+  extern xyz_pos_t raised_parked_position;         // Used in mode 1
+  extern millis_t delayed_move_time;               // Used in mode 1
+  extern celsius_t duplicate_extruder_temp_offset; // Used in mode 2 & 3
+  extern bool active_extruder_parked,              // Used in mode 1, 2 & 3
+              idex_mirrored_mode;                  // Used in mode 3
 
   FORCE_INLINE bool idex_is_duplicating() { return dual_x_carriage_mode >= DXC_DUPLICATION_MODE; }
 

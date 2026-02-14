@@ -405,7 +405,7 @@ void Motion::report_position_projected() {
         case Z_AXIS: MAP(_MAP_SAVE_SET, Z, Z2, Z3, Z4); break;
       }
 
-    #endif // kinematics
+    #endif // Kinematics
 
     switch (axis) {
       default: break;
@@ -560,7 +560,7 @@ void Motion::report_position_projected() {
         case Z_AXIS: MAP(_MAP_RESTORE, Z, Z2, Z3, Z4); break;
       }
 
-    #endif // kinematics
+    #endif // Kinematics
 
     switch (axis) {
       default: break;
@@ -709,7 +709,7 @@ void Motion::report_position_projected() {
     #endif
   }
 
-#endif // CARTESIAN
+#endif // IS_KINEMATIC / CARTESIAN
 
 void Motion::home_if_needed(const bool keeplev/*=false*/) {
   if (!all_axes_trusted()) gcode.home_all_axes(keeplev);
@@ -914,9 +914,9 @@ void Motion::blocking_move(NUM_AXIS_ARGS_(const float) const feedRate_t fr_mm_s/
   #endif
 
   #if IS_KINEMATIC && DISABLED(POLARGRAPH)
-    // kinematic machines are expected to home to a point 1.5x their range? never reachable.
+    // Kinematic machines are expected to home to a point 1.5x their range? never reachable.
     if (!can_reach(x, y)) return;
-    destination = position;          // sync destination at the start
+    destination = position; // Sync destination at the start
   #endif
 
   #if ENABLED(DELTA)
@@ -927,30 +927,30 @@ void Motion::blocking_move(NUM_AXIS_ARGS_(const float) const feedRate_t fr_mm_s/
 
     // when in the danger zone
     if (position.z > delta_clip_start_height) {
-      if (z > delta_clip_start_height) {               // Staying in the danger zone
-        destination.set(x, y, z);                      // Move directly (uninterpolated)
-        prepare_internal_fast_move_to_destination();   // Set position from destination
+      if (z > delta_clip_start_height) {                     // Staying in the danger zone
+        destination.set(x, y, z);                            // Move directly (uninterpolated)
+        prepare_internal_fast_move_to_destination();         // Set position from destination
         if (DEBUGGING(LEVELING)) DEBUG_POS("danger zone move", position);
         return;
       }
       destination.z = delta_clip_start_height;
-      prepare_internal_fast_move_to_destination();     // Set position from destination
+      prepare_internal_fast_move_to_destination();           // Set position from destination
       if (DEBUGGING(LEVELING)) DEBUG_POS("zone border move", position);
     }
 
-    if (z > position.z) {                              // Raising?
+    if (z > position.z) {                                    // Raising?
       destination.z = z;
-      prepare_internal_fast_move_to_destination(z_feedrate);  // Set position from destination
+      prepare_internal_fast_move_to_destination(z_feedrate); // Set position from destination
       if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", position);
     }
 
     destination.set(x, y);
-    prepare_internal_move_to_destination();            // Set position from destination
+    prepare_internal_move_to_destination();                  // Set position from destination
     if (DEBUGGING(LEVELING)) DEBUG_POS("xy move", position);
 
-    if (z < position.z) {                              // Lowering?
+    if (z < position.z) {                                    // Lowering?
       destination.z = z;
-      prepare_internal_fast_move_to_destination(z_feedrate);  // Set position from destination
+      prepare_internal_fast_move_to_destination(z_feedrate); // Set position from destination
       if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", position);
     }
 
@@ -1438,7 +1438,7 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
     next_idle_ms = ms + 200UL;
     return marlin.idle();
   }
-  thermalManager.task();  // Returns immediately on most calls
+  thermalManager.task(); // Returns immediately on most calls
 }
 
 /**
@@ -1582,7 +1582,7 @@ float Motion::get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXE
     // For DELTA/SCARA if the move is only in Z/E don't split up the move
     if (TERN0(AXEL_TPARA, !diff.x && !diff.y)) {
       planner.buffer_line(destination, scaled_fr_mm_s);
-      return false; // caller will update position
+      return false; // Caller will update position
     }
 
     // Fail if attempting move outside printable radius
@@ -1655,7 +1655,7 @@ float Motion::get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXE
     // Ensure last segment arrives at target location.
     planner.buffer_line(destination, scaled_fr_mm_s, extruder, hints);
 
-    return false; // caller will update position
+    return false; // Caller will update position
   }
 
 #else // !IS_KINEMATIC
@@ -1749,11 +1749,11 @@ float Motion::get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXE
           #endif
         #elif ENABLED(SEGMENT_LEVELED_MOVES)
           goto_destination_segmented(scaled_fr_mm_s);
-          return false; // caller will update position
+          return false; // Caller will update position
         #else
           /**
            * For MBL and ABL-BILINEAR only segment moves when X or Y are involved.
-           * Otherwise fall through to do a direct single move.
+           * Otherwise fallthrough to do a direct single move.
            */
           if (xy_pos_t(position) != xy_pos_t(destination)) {
             #if ENABLED(MESH_BED_LEVELING)
@@ -1768,7 +1768,7 @@ float Motion::get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXE
     #endif // HAS_MESH
 
     planner.buffer_line(destination, scaled_fr_mm_s);
-    return false; // caller will update position
+    return false; // Caller will update position
   }
 
 #endif // !IS_KINEMATIC
@@ -1782,14 +1782,14 @@ float Motion::get_move_distance(const xyze_pos_t &diff OPTARG(HAS_ROTATIONAL_AXE
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
-  DualXMode dual_x_carriage_mode         = DEFAULT_DUAL_X_CARRIAGE_MODE;
-  float inactive_extruder_x              = X2_MAX_POS,                    // Used in mode 0 & 1
-        duplicate_extruder_x_offset      = DEFAULT_DUPLICATION_X_OFFSET;  // Used in mode 2 & 3
-  xyz_pos_t raised_parked_position;                                       // Used in mode 1
-  bool active_extruder_parked            = false;                         // Used in mode 1, 2 & 3
-  millis_t delayed_move_time             = 0;                             // Used in mode 1
-  celsius_t duplicate_extruder_temp_offset = 0;                           // Used in mode 2 & 3
-  bool idex_mirrored_mode                = false;                         // Used in mode 3
+  DualXMode dual_x_carriage_mode           = DEFAULT_DUAL_X_CARRIAGE_MODE;
+  float inactive_extruder_x                = X2_MAX_POS,                   // Used in mode 0 & 1
+        duplicate_extruder_x_offset        = DEFAULT_DUPLICATION_X_OFFSET; // Used in mode 2 & 3
+  xyz_pos_t raised_parked_position;                                        // Used in mode 1
+  millis_t delayed_move_time               = 0;                            // Used in mode 1
+  celsius_t duplicate_extruder_temp_offset = 0;                            // Used in mode 2 & 3
+  bool active_extruder_parked              = false,                        // Used in mode 1, 2 & 3
+       idex_mirrored_mode                  = false;                        // Used in mode 3
 
   float x_home_pos(const uint8_t extruder) {
     if (extruder == 0) return X_HOME_POS;
@@ -2284,7 +2284,7 @@ void Motion::prepare_line_to_destination() {
         const xyze_float_t cart_dist_mm{0};
       #endif
 
-      // Set delta/cartesian axes directly
+      // Set DELTA/Cartesian axes directly
       target[axis] = distance;                  // The move will be towards the endstop
       planner.buffer_segment(target OPTARG(HAS_DIST_MM_ARG, cart_dist_mm), home_fr_mm_s, extruder);
     #endif
