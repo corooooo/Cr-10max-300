@@ -2215,7 +2215,9 @@ void autoHome() { queue.inject_P(G28_STR); }
   REPEAT_1(PREHEAT_COUNT, _doPreheat)
 #endif
 
-void doCoolDown() { thermalManager.cooldown(); }
+#if HAS_HOTEND || HAS_HEATED_BED
+  void doCoolDown() { thermalManager.cooldown(); }
+#endif
 
 void setLanguage() {
   hmiToggleLanguage();
@@ -2833,7 +2835,7 @@ void onDrawAutoHome(MenuItem* menuitem, int8_t line) {
   #endif
 #endif
 
-#if HAS_HOTEND
+#if HAS_PREHEAT
   void onDrawPreheat1(MenuItem* menuitem, int8_t line) {
     if (hmiIsChinese()) menuitem->setFrame(1, 100, 89, 151, 101);
     onDrawMenuItem(menuitem, line);
@@ -2846,7 +2848,7 @@ void onDrawAutoHome(MenuItem* menuitem, int8_t line) {
   #endif
 #endif
 
-#if HAS_PREHEAT
+#if HAS_HOTEND || HAS_HEATED_BED
   void onDrawCooldown(MenuItem* menuitem, int8_t line) {
     if (hmiIsChinese()) menuitem->setFrame(1, 1, 104,  56, 117);
     onDrawMenuItem(menuitem, line);
@@ -3191,7 +3193,9 @@ void drawPrepareMenu() {
       #define _ITEM_PREHEAT(N) MENU_ITEM(ICON_Preheat##N, MSG_PREHEAT_##N, onDrawMenuItem, DoPreheat##N);
       REPEAT_1(PREHEAT_COUNT, _ITEM_PREHEAT)
     #endif
-    MENU_ITEM(ICON_Cool, MSG_COOLDOWN, onDrawCooldown, doCoolDown);
+    #if HAS_HOTEND || HAS_HEATED_BED
+      MENU_ITEM(ICON_Cool, MSG_COOLDOWN, onDrawCooldown, doCoolDown);
+    #endif
     #if ALL(PROUI_TUNING_GRAPH, PROUI_ITEM_PLOT)
       MENU_ITEM(ICON_PIDNozzle, MSG_HOTEND_TEMP_GRAPH, onDrawMenuItem, drawHPlot);
       MENU_ITEM(ICON_PIDBed, MSG_BED_TEMP_GRAPH, onDrawMenuItem, drawBPlot);
