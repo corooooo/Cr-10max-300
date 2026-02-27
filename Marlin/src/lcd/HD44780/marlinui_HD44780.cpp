@@ -89,6 +89,16 @@
     #endif
   );
 
+#elif ENABLED(MIGHTYBOARD_LCD)
+
+  // 3-wire shift-register LCD for Mightyboard
+  // Optimized in-tree implementation
+  #if PIN_EXISTS(LCD_PWR)
+    LCD_CLASS lcd(SR_STROBE_PIN, SR_DATA_PIN, SR_CLK_PIN, LCD_PWR_PIN);
+  #else
+    LCD_CLASS lcd(SR_STROBE_PIN, SR_DATA_PIN, SR_CLK_PIN);
+  #endif
+
 #elif ENABLED(SR_LCD_3W_NL)
 
   // NewLiquidCrystal was not working
