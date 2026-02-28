@@ -74,18 +74,12 @@ enum processID : uint8_t {
 
 #if ANY(HAS_PID_HEATING, MPC_AUTOTUNE)
 
-  enum TempControl {
+  enum tempcontrol_t : uint8_t {
     AUTOTUNE_DONE,
     #if HAS_PID_HEATING
-      #if ENABLED(PIDTEMP)
-        PIDTEMP_START,
-      #endif
-      #if ENABLED(PIDTEMPBED)
-        PIDTEMPBED_START,
-      #endif
-      #if ENABLED(PIDTEMPCHAMBER)
-        PIDTEMPCHAMBER_START,
-      #endif
+      OPTITEM(PIDTEMP, PID_STARTED)
+      OPTITEM(PIDTEMPBED, PID_BED_STARTED)
+      OPTITEM(PIDTEMPCHAMBER, PID_CHAMBER_STARTED)
       PID_BAD_HEATER_ID,
       PID_TEMP_TOO_HIGH,
       PID_TUNING_TIMEOUT,
@@ -95,10 +89,7 @@ enum processID : uint8_t {
       MPC_TEMP_ERROR,
       MPC_INTERRUPTED,
     #endif
-    TEMPCONTROL_COUNT
   };
-
-  typedef bits_t(TEMPCONTROL_COUNT) tempcontrol_t;
 
 #endif
 
@@ -186,7 +177,7 @@ typedef struct {
 
 typedef struct {
   rgb_t color;                        // Color
-  #if ANY(HAS_PID_HEATING, MPCTEMP)
+  #if ANY(HAS_PID_HEATING, MPC_AUTOTUNE)
     tempcontrol_t tempControl = AUTOTUNE_DONE;
   #endif
   uint8_t select = 0;                 // Auxiliary selector variable
@@ -285,10 +276,12 @@ void updateVariable();
 void dwinInitScreen();
 void dwinHandleScreen();
 void dwinCheckStatusMessage();
+void dwinDrawStatusMessage();
 void dwinHomingStart();
 void dwinHomingDone();
 #if HAS_MESH
-  void dwinMeshUpdate(const int8_t cpos, const int8_t tpos, const float zval);
+  void dwinMeshUpdate(const int8_t xpos, const int8_t ypos, const float zval);
+  void dwinPointUpdate(const int8_t cpos, const int8_t tpos, const float zval);
 #endif
 void dwinLevelingStart();
 void dwinLevelingDone();
@@ -298,7 +291,7 @@ void dwinPrintResume();
 void dwinPrintFinished();
 void dwinPrintAborted();
 #if HAS_FILAMENT_SENSOR
-  void dwinFilamentRunout(const uint8_t extruder);
+  void dwinFilamentRunout();
 #endif
 void dwinPrintHeader(const char * const cstr=nullptr);
 void dwinSetColorDefaults();
@@ -308,8 +301,6 @@ void dwinSetDataDefaults();
 void dwinRebootScreen();
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
-  void dwinPopupPause(FSTR_P const fmsg, uint8_t button=0);
-  void drawPopupFilamentPurge();
   void gotoFilamentPurge();
 #endif
 
@@ -327,8 +318,13 @@ void dwinRebootScreen();
 #endif
 #if ALL(PROUI_TUNING_GRAPH, PROUI_ITEM_PLOT)
   void dwinDrawPlot(tempcontrol_t result);
-  void drawHPlot();
-  void drawBPlot();
+  void drawHotendPlot();
+  #if ENABLED(PIDTEMPBED)
+    void drawBedPlot();
+  #endif
+  #if ENABLED(PIDTEMPCHAMBER)
+    void drawChamberPlot();
+  #endif
 #endif
 
 // Menu drawing functions
