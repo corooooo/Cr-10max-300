@@ -81,6 +81,10 @@ Stepper stepper; // Singleton
   #include "ft_motion.h"
 #endif
 
+#if (ENABLED(RESONANCE_TEST) && HAS_STANDARD_MOTION)
+  #include "../feature/resonance/resonance_generator.h"
+#endif
+
 #include "../lcd/marlinui.h"
 #include "../gcode/queue.h"
 #include "../sd/cardreader.h"
@@ -617,6 +621,117 @@ bool Stepper::disable_axis(const AxisEnum axis) {
 
   return can_disable;
 }
+
+#if (ENABLED(RESONANCE_TEST) && HAS_STANDARD_MOTION)
+  hal_timer_t Stepper::resonance_block_phase_isr() {
+
+    const hal_timer_t time_spent = HAL_timer_get_count(MF_TIMER_STEP);
+    #if MULTISTEPPING_LIMIT > 1
+      if (steps_per_isr > 1 && time_spent_out_isr >= time_spent_in_isr + time_spent)
+        steps_per_isr >>= 1;
+    #endif
+    time_spent_in_isr = -time_spent;    // Unsigned but guaranteed to be +ve when needed
+    time_spent_out_isr = 0;
+
+    hal_timer_t interval = 0;
+
+    // If current block is not finished, continue with it
+    if (step_events_completed < step_event_count)
+      return calc_multistep_timer_interval(current_block->initial_rate);
+
+    // Current block is finished, reset pointer
+    current_block = nullptr;
+
+    // Generate a new block
+    if ((current_block = rtg.generate_resonance_block())) {
+      // Apply direction
+      DIR_WAIT_BEFORE();
+      const uint8_t axis = rtg.rt_params.axis;
+      const bool fwd = current_block->direction_bits[axis];
+      switch (axis) {
+        case X_AXIS: X_APPLY_DIR(fwd, false); break;
+        case Y_AXIS: Y_APPLY_DIR(fwd, false); break;
+        case Z_AXIS: Z_APPLY_DIR(fwd, false); break;
+      }
+
+      step_event_count = current_block->step_event_count;
+      step_events_completed = 0;
+      interval = calc_multistep_timer_interval(current_block->initial_rate);
+    }
+    else
+      rtg.abort();
+
+    return interval;
+  }
+
+  void Stepper::resonance_pulse_phase_isr() {
+
+    // If there is no current block, do nothing
+    if (!current_block || step_events_completed >= step_event_count) return;
+
+    // Count of pending loops and events for this iteration
+    const uint32_t pending_events = step_event_count - step_events_completed;
+    uint8_t events_to_do = _MIN(pending_events, steps_per_isr);
+
+    // Just update the value we will get at the end of the loop
+    step_events_completed += events_to_do;
+
+    #define RESONANCE_STEP_SEQUENCE(A) do { \
+      A##_APPLY_STEP(STEP_STATE_##A, false); \
+      START_TIMED_PULSE(); \
+      AWAIT_HIGH_PULSE(); \
+      A##_APPLY_STEP(!STEP_STATE_##A, false); \
+    } while(0)
+
+    USING_TIMED_PULSE();
+
+    const uint8_t axis = rtg.rt_params.axis;
+
+    switch (axis) {
+      case X_AXIS:
+        #if ISR_MULTI_STEPS
+          RESONANCE_STEP_SEQUENCE(X);
+          while (--events_to_do) {
+            AWAIT_LOW_PULSE();
+            RESONANCE_STEP_SEQUENCE(X);
+          }
+        #else
+          do {
+            RESONANCE_STEP_SEQUENCE(X);
+          } while (--events_to_do);
+        #endif
+        break;
+
+      case Y_AXIS:
+        #if ISR_MULTI_STEPS
+          RESONANCE_STEP_SEQUENCE(Y);
+          while (--events_to_do) {
+            AWAIT_LOW_PULSE();
+            RESONANCE_STEP_SEQUENCE(Y);
+          }
+        #else
+          do {
+            RESONANCE_STEP_SEQUENCE(Y);
+          } while (--events_to_do);
+        #endif
+        break;
+
+      case Z_AXIS:
+        #if ISR_MULTI_STEPS
+          RESONANCE_STEP_SEQUENCE(Z);
+          while (--events_to_do) {
+            AWAIT_LOW_PULSE();
+            RESONANCE_STEP_SEQUENCE(Z);
+          }
+        #else
+          do {
+            RESONANCE_STEP_SEQUENCE(Z);
+          } while (--events_to_do);
+        #endif
+        break;
+    }
+  }
+#endif
 
 #if HAS_EXTRUDERS
 
@@ -1646,6 +1761,19 @@ void Stepper::isr() {
     #if HAS_STANDARD_MOTION
 
       if (!using_ftMotion) {
+        #if ENABLED(RESONANCE_TEST)
+          if (rtg.isActive()) {
+            if (!nextMainISR) resonance_pulse_phase_isr();
+
+            hal.isr_on();
+            if (!nextMainISR) nextMainISR = resonance_block_phase_isr();
+
+            interval = hal_timer_t(STEPPER_TIMER_RATE * 0.03);                  // Max wait of 30ms regardless of stepper timer frequency
+            NOMORE(interval, nextMainISR);                                      // Time until the next Pulse / Block phase
+            nextMainISR -= interval;
+          }
+          else {
+        #endif
 
         TERN_(HAS_ZV_SHAPING, shaping_isr());               // Do Shaper stepping, if needed
 
@@ -1709,6 +1837,7 @@ void Stepper::isr() {
         TERN_(BABYSTEPPING, if (nextBabystepISR != BABYSTEP_NEVER) nextBabystepISR -= interval);
 
       }
+    TERN_(RESONANCE_TEST, })
 
     #endif // HAS_STANDARD_MOTION
 

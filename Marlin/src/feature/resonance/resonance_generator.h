@@ -25,11 +25,29 @@
 
 #include <math.h>
 
-#ifndef M_TAU
-  #define M_TAU (2.0f * M_PI)
+#if HAS_STANDARD_MOTION
+#include "../../module/planner.h"
 #endif
 
-typedef struct FTMResonanceTestParams {
+// Fixed-point configuration
+#define FP_BITS 16  // 16 bits for fractional part
+#define FP_ONE (1UL << FP_BITS)  // Fixed-point 1.0
+
+// Convert float to fixed-point
+#define F2FP(x) ((int32_t)((x) * FP_ONE + 0.5f))
+
+// Convert fixed-point to float
+#define FP2F(x) ((float)(x) / FP_ONE)
+
+// Fixed-point constants
+#define M_TAU_FP F2FP(2.0f * M_PI)
+#define M_PI_FP F2FP(M_PI)
+#define C0101321184_FP F2FP(0.101321184f)
+
+// For rt_time calculation, perfect match between octave duration and frequency sweep
+#define RATIO (1.0f + 1.0f / 65536.0f) // 1 + 1/2^16
+
+typedef struct ResonanceTestParams {
   AxisEnum axis         = NO_AXIS_ENUM; // Axis to test
   float min_freq        =   5.0f;       // Minimum frequency [Hz]
   float max_freq        = 100.0f;       // Maximum frequency [Hz]
@@ -37,27 +55,18 @@ typedef struct FTMResonanceTestParams {
   float accel_per_hz    =  60.0f;       // Acceleration per Hz [mm/sec/Hz] or [g/Hz]
   int16_t amplitude_correction = 5;     // Amplitude correction factor
   xyze_pos_t start_pos;                 // Initial stepper position
-} ftm_resonance_test_params_t;
+} resonance_test_params_t;
 
 class ResonanceGenerator {
   public:
-    static ftm_resonance_test_params_t rt_params; // Resonance test parameters
-    static float timeline;                        // Timeline Value to calculate resonance frequency
+    static resonance_test_params_t rt_params;     // Resonance test parameters
+    float timeline;                        // Timeline Value to calculate resonance frequency
 
     ResonanceGenerator();
 
     void reset();
 
-    void start(const xyze_pos_t &spos, const float t) {
-      rt_params.start_pos = spos;
-      rt_time = t;
-      active = true;
-      done = false;
-      // Precompute frequency multiplier
-      current_freq = rt_params.min_freq;
-      const float inv_octave_duration = 1.0f / rt_params.octave_duration;
-      freq_mul = exp2f(FTM_TS * inv_octave_duration);
-    }
+    void start();
 
     // Return frequency based on timeline
     float getFrequencyFromTimeline() {
@@ -65,7 +74,13 @@ class ResonanceGenerator {
       return rt_params.min_freq * exp2f(timeline / rt_params.octave_duration);
     }
 
-    void fill_stepper_plan_buffer();                // Fill stepper plan buffer with trajectory points
+    #if HAS_STANDARD_MOTION
+      block_t *generate_resonance_block();  // Generate planner block for standard motion
+    #endif
+
+    #if ENABLED(FT_MOTION)
+      void fill_stepper_plan_buffer();                // Fill stepper plan buffer with trajectory points
+    #endif
 
     void setActive(const bool state) { active = state; }
     bool isActive() const { return active; }
@@ -76,10 +91,22 @@ class ResonanceGenerator {
     void abort();             // Abort resonance test
 
   private:
-    float fast_sin(float x);  // Fast sine approximation
-    static float rt_time;     // Test timer
-    float freq_mul;           // Frequency multiplier for sine sweeping
-    float current_freq;       // Current frequency being generated in sinusoidal motion
-    static bool active;       // Resonance test active
-    static bool done;         // Resonance test done
+    float calc_next_pos();            // Calculate next position point based on current frequency
+    
+    // Fixed-point variables
+    int32_t amplitude_precalc_fp;     // Fixed-point amplitude precalculation
+    int32_t current_freq_fp;          // Fixed-point current frequency
+    
+    // Phase variables (in radians, stored as fixed-point)
+    int32_t phase_fp;                 // Fixed-point phase accumulator
+    static int32_t freq_to_phase_fp;  // Fixed-point frequency to phase conversion
+    
+    int32_t max_freq_fp;              // Fixed-point maximum frequency
+    #if HAS_STANDARD_MOTION
+      static block_t block;
+    #endif
+    static bool active;               // Resonance test active
+    static bool done;                 // Resonance test done
 };
+
+extern ResonanceGenerator rtg;
