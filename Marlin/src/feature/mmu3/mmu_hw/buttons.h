@@ -44,9 +44,10 @@ enum class ButtonOperations : uint8_t {
   Load        = 5,
   Eject       = 6,
   Tune        = 7,
-  StopPrint   = 8,
-  DisableMMU  = 9,
-  MoreInfo    = 10,
+  StopPrint   = 5,
+  DisableMMU  = 6,
+  Skip        = 7,
+  MoreInfo    = 8
 };
 
 // Button codes + extended actions performed on the printer's side
