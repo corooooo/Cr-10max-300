@@ -1224,10 +1224,21 @@
                                                 // TRAPEZOIDAL: Continuous Velocity. Max acceleration is respected.
                                                 // POLY5:       Like POLY6 with 1.5x but uses less CPU.
                                                 // POLY6:       Continuous Acceleration (aka S_CURVE).
+                                                // CONSTANT_JERK: requires FTM_CONSTANT_JERK.
                                                 // POLY trajectories not only reduce resonances without rounding corners, but also
                                                 // reduce extruder strain due to linear advance.
 
     #define FTM_POLY6_ACCELERATION_OVERSHOOT 1.875f // Max acceleration overshoot factor for POLY6 (1.25 to 1.875)
+  #endif
+
+  #define FTM_CONSTANT_JERK                     // Enable constant-jerk (7-phase S-curve) trajectory
+                                                // Jerk here means the rate of change of acceleration, is not related
+                                                // to Marlin's "classic jerk"
+                                                // Acceleration will ramp up gradually, so max acceleration is limited
+                                                // by max speed and distance travelled
+  #if ENABLED(FTM_CONSTANT_JERK)
+    #define FTM_DEFAULT_JERK_MAX 500'000.0f     // (mm/s³) Default maximum jerk for constant-jerk trajectory
+                                                // Higher prints faster at the cost of increased resonance and extruder stress
   #endif
 
   /**
